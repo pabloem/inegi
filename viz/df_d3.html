@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/pure/0.6.0/buttons-min.css"></link>
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/pure/0.6.0/grids-min.css"></link>
+<style>
+.counties {
+  fill: none;
+  stroke: #000;
+  stroke-linejoin: round;
+  }
+#dad { width: 950px; }
+#container { display: inline-block; width: 550px; vertical-align: top;}
+#controls { display: inline-block; width: 750px; vertical-align: top;}
+#list { display: inline-block; width: 350px; vertical-align: top;}
+ul { list-style-type: none; padding: 0px;}
+li { margin: 5px; display: block;}
+span { display: inline-block; margin: 2px;}
+.del-span { display: inline-block;  width: 10px; height: 10px; margin: 1px; border: 1px solid black;}
+.q0-9 { fill:rgb(247,251,255); background-color:rgb(247,251,255); }
+.q1-9 { fill:rgb(222,235,247); background-color:rgb(222,235,247); }
+.q2-9 { fill:rgb(198,219,239); background-color:rgb(198,219,239); }
+.q3-9 { fill:rgb(158,202,225); background-color:rgb(158,202,225); }
+.q4-9 { fill:rgb(107,174,214); background-color:rgb(107,174,214); }
+.q5-9 { fill:rgb(66,146,198); background-color:rgb(66,146,198); }
+.q6-9 { fill:rgb(33,113,181); background-color:rgb(33,113,181); }
+.q7-9 { fill:rgb(8,81,156); background-color:rgb(8,81,156); }
+.q8-9 { fill:rgb(8,48,107); background-color:rgb(8,48,107); }
+
+</style>
+<body>
+  <div class="pure-g"id="dad">
+    <div class="pure-u-1">
+    <div id="container"></div>
+    <div id="list">
+      <h3>Number of Tortillerias in DF</h3>
+      <ul id="values_list">
+      </ul>
+    </div>
+    <div id="controls">
+      <span><button class="pure-button pure-button-primary" onclick="updateChoropleth('pops');">Population</button></span>
+      <span><button class="pure-button pure-button-primary" onclick="updateChoropleth('torts');">Tortilla shops</button></span>
+      <span><button class="pure-button pure-button-primary" onclick="updateChoropleth('torts_pc');">Tortilla shops per Capita</button></span>
+      <span><button class="pure-button pure-button-primary" onclick="updateChoropleth('gdps');">GDP</button></span>
+      <span><button class="pure-button pure-button-primary" onclick="updateChoropleth('gdps_pc');">GDP per Captita</button></span>
+    </div></div>
+  </div>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/queue.v1.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script src="./main.js"></script>
+</body>
+</html>
