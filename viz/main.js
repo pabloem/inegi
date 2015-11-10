@@ -69,6 +69,30 @@ function parse(val) {
 var lang = lang || parse("lang") || "en";
 console.log(lang);
 
+function wrap(text) {
+  text.each(function() {
+    var text = d3.select(this),
+        words = text.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 0.4, // ems
+        y = text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > 0) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+      }
+    }
+  });
+}
+
 function updateChoropleth(measure) {
   var statistic = measure,
       dic = dics[statistic];
@@ -80,6 +104,12 @@ function updateChoropleth(measure) {
   d3.selectAll("#values_list li").sort(function(a,b) {return +dic[b.id] - +dic[a.id]; }).transition().delay(1000);
   d3.selectAll(".del-span").attr('class',function(d) { return "del-span " + quantize(dic[d.id]/maxs[statistic]); });
   d3.select("h3").text(titles[lang][measure]);
+  svg.selectAll(".delegacion-label")
+    .text(function(d){return d.properties.name;})
+    .attr("class",function(d){ if(["q8-9","q7-9"].indexOf(quantize(dic[d.id]/maxs[statistic])) >= 0)
+                               return "delegacion-label q0-9";
+                               return "delegacion-label";})
+    .call(wrap);
 }
 
 function ready(error, mx) {
@@ -95,13 +125,17 @@ function ready(error, mx) {
     .enter().append("li").append("span").attr("class","del-span");
   
   d3.selectAll("#values_list li").append("span").attr("class","del-list");
-  
+
   svg.append("g")
     .attr("class", "counties")
     .selectAll("path")
     .data(topojson.feature(mx, mx.objects.delegaciones).features)
     .enter().append("path")
     .attr("d", path).append("title").text("");
+  svg.selectAll(".delegacion-label").data(topojson.feature(mx,mx.objects.delegaciones).features)
+    .enter().append("text").attr("class","delegacion-label")
+    .attr("transform", function(d) { return "translate("+path.centroid(d)+")";})
+    .attr("dy",".35em").text(function(d){return d.properties.name});
   updateChoropleth(statistic);
 }
 d3.select(self.frameElement).style("height", height + "px");
