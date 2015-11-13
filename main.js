@@ -1,5 +1,5 @@
 var width = 500,
-    height = 650;
+    height = 580;
 
 var gdps = {},
     gdps_pc = {},
