@@ -26,7 +26,7 @@ base = "http://www3.inegi.org.mx//sistemas/api/indicadores/v1//Indicador/"
 end = "/es/true/json/f1a4933d-07e8-cdc3-6cfc-832495fffd3c"
 
 for j,ln in enumerate(rd):
-    if (j + 1) % 50 == 0: print("Got "+(j+1)+" elements.")
+    if (j + 1) % 50 == 0: print("Got "+str(j+1)+" elements.")
     mn_id = ln['cv_estado']+ln['cv_municipio']
     for i, ind in enumerate(indicators):
         ind_nm = ind_names[i]
