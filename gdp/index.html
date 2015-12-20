@@ -97,7 +97,7 @@ function parse(val) {
 }
 
 var width = 760,
-    height = 700,
+    height = 640,
     barsWidth = width - 200,
     barsXStart = width/2 - barsWidth/2;
 
@@ -106,7 +106,7 @@ var path = d3.geo.path()
 
 var svg = d3.select("body").append("svg")
     .attr("width", width)
-    .attr("height", height);
+    .attr("height", height+60);
 
 var total_gdp = 0,
     total_population = 0,
