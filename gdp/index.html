@@ -10,10 +10,16 @@
   .municipalities-bars0 :hover { fill: orange; }
   .municipalities-bars1 :hover { fill: orange;}
 
-  text {font-family:Helvetica; font-size:small;}
-#text-marker { font-size:x-small; color: grey; }
-#count-marker { font-size:x-small; color: grey; }
-#pop-marker { font-size:x-small; color: grey; }
+  .pop-rect{stroke-width: 0px;}
+  .gdp-rect{stroke-width: 0px;}
+
+  .side-label {font-size: x-small; }
+text {font-family:Helvetica; font-size:small;}
+#title-container {font-family: Helvetica; max-width: 760px;}
+#text-marker { font-size:x-small; }
+#count-marker { font-size:x-small; }
+#pop-marker { font-size:x-small; }
+#water-mark { font-size:small; fill: #CCC; }
 
 .municipalities-marked {
   fill: #AAA;
@@ -35,15 +41,31 @@
 
 </style>
   <body>
+  <div id="title-container"><center><h4 id="main-title"></h4></center></div>
 <script src="//d3js.org/d3.v3.min.js"></script>
   <script src="//d3js.org/topojson.v1.min.js"></script>
   <script src="//d3js.org/queue.v1.min.js"></script>
   <script>
 
+String.prototype.format = function() {
+    var formatted = this;
+    for (var i = 0; i < arguments.length; i++) {
+        var regexp = new RegExp('\\{'+i+'\\}', 'gi');
+        formatted = formatted.replace(regexp, arguments[i]);
+    }
+    return formatted;
+};
+
 var labels = {
   'mun_label':{'es':'municipios','en':'municipalities'},
   'population':{'es':'Población','en':'Population'},
-  'production':{'es':'Producción', 'en':'Production'}
+  'production':{'es':'Producción', 'en':'Production'},
+  'title':{'es':'Dónde se produce la riqueza en México',
+           'en':'Where in Mexico is the most wealth produced'},
+  'legend0':{'es':"En {0} municipios se concentra {1}% de la",
+             'en':"In {0} municipalities concentrates {1}% of"},
+  'legend1':{'es':"producción, y el {0}% de la población en México.",
+             'en':"the production, and {0}% of the population in Mexico."}
 };
 
 var palette = ["#75dddd", //rgba(117, 221, 221, 100)
@@ -71,8 +93,8 @@ function parse(val) {
   return result;
 }
 
-var width = 960,
-    height = 728,
+var width = 760,
+    height = 640,
     barsWidth = width - 200,
     barsXStart = width/2 - barsWidth/2;
 
@@ -91,6 +113,8 @@ var total_gdp = 0,
 var init_count = parseInt(parse('cnt') || 20),
     lang = parse('lang') || 'es';
     accum = 0;
+
+d3.select("#main-title").text(labels['title'][lang]);
 
 queue()
   .defer(d3.json,"mx.json")
@@ -115,7 +139,7 @@ function doChoropleth(count) {
     .style("fill",function(d,i) {
       if(d !== undefined) {
         var id = d.properties.state+d.properties.mun;
-        if(marked[id] < count) return palette[i % colNumbers];
+        if(marked[id] < count) return palette[2+ i % 3]; // palette[i % colNumbers];
       }
       return "black";
     });
@@ -128,7 +152,7 @@ function doChoropleth(count) {
         if(marked[id] < count) {
           accPct += d['brute_production']/total_gdp;
           accMunicipalities += 1;
-          return palette[i % colNumbers];
+          return palette[4 - Math.floor(accPct*5)];
         }
       }
       return "black";
@@ -143,7 +167,8 @@ function doChoropleth(count) {
     .transition()
     .duration(2000)
     .attr("x",barsXStart+barsWidth*accPct);
-  
+
+  var gdpAcc = 0;
   accPct = 0;
   accMunicipalities = 0;
   svg.selectAll(".pop-rect")
@@ -153,9 +178,11 @@ function doChoropleth(count) {
       if(d !== undefined) {
         var id = d.cv_estado+d.cv_municipio;
         if(marked[id] < count) {
+          gdpAcc += d['brute_production']/total_gdp;
           accPct += d['population']/total_population;
           accMunicipalities += 1;
-          return palette[i % colNumbers];
+          //return palette[i % colNumbers];
+          return palette[4 - Math.floor(gdpAcc*5)];
         }
       }
       return "black";
@@ -165,6 +192,9 @@ function doChoropleth(count) {
     .transition()
     .duration(2000)
     .attr("x",barsXStart+barsWidth*accPct);
+
+  svg.select("#legend0").text(labels['legend0'][lang].format(accMunicipalities,Math.round(gdpAcc*10000)/100));
+  svg.select("#legend1").text(labels['legend1'][lang].format(Math.round(accPct*10000)/100));
 }
 
 function ready(error, mx) {
@@ -184,9 +214,14 @@ function ready(error, mx) {
   svg.selectAll(".municipalities")
     .style("fill",function(d,i) {
       var id = d.properties.state+d.properties.mun;
-      if(marked[id] < init_count) return palette[i % colNumbers];
+      if(marked[id] < init_count) return palette[2+ i % 3]; // return palette[i % colNumbers];
       return "black";
     });
+
+  svg.append("text")
+    .text("by Pablo Estrada @ pabloem.github.io")
+    .attr("id","water-mark")
+    .attr("y",height - 10).attr("x",0);
 
   svg.append("path")
       .datum(topojson.mesh(mx, mx.objects.municipalities, function(a, b) { return a.properties.state !== b.properties.state; }))
@@ -215,7 +250,7 @@ function ready(error, mx) {
              if(i < init_count) {
                accPct += d['brute_production']/total_gdp;
                accMunicipalities += 1;
-               return palette[i % colNumbers];
+               return palette[4 - Math.floor(accPct*5)];
              }
              return "";
            })
@@ -226,7 +261,8 @@ function ready(error, mx) {
       var add = barsWidth*d['brute_production']/total_gdp;
       accumulator += add;
       return accumulator - add;
-    });
+    })
+    .append('title').text(function(d){ return d['municipio'];});
   svg.append("text")
     .attr("id","text-marker")
     .attr("y",gdp_r_height + 40)
@@ -241,7 +277,8 @@ function ready(error, mx) {
   accumulator = barsXStart;
   accMunicipalities = 0;
   accPct = 0;
-  var pop_r_height = height - 120;
+  var pop_r_height = height - 120,
+      gdpAcc = 0;
   svg.append("text").attr("x",barsXStart).attr("y",pop_r_height-2)
     .text(labels['population'][lang]);
   svg.selectAll(".pop-rect")
@@ -257,8 +294,9 @@ function ready(error, mx) {
            function(d,i){
              if(i < init_count) {
                accPct += d['population']/total_population;
+               gdpAcc += d['brute_production']/total_gdp;
                accMunicipalities += 1;
-               return palette[i % colNumbers];
+               return palette[4 - Math.floor(gdpAcc*5)];
              }
              return "";
            })
@@ -269,12 +307,25 @@ function ready(error, mx) {
       var add = barsWidth*d['population']/total_population;
       accumulator += add;
       return accumulator - add;
-    });
+    })
+    .append('title').text(function(d){ return d['municipio'];});
   svg.append("text")
     .attr("id","pop-marker")
     .attr("y",pop_r_height + 30)
     .attr("x",barsXStart+barsWidth*accPct)
     .text(Math.round(accPct*10000)/100+"%");
+
+  svg.append("text")
+    .attr("x",450).attr("y",100)
+    .attr("class","side-label")
+    .attr("id","legend0")
+    .style("width",150)
+    .text(labels['legend0'][lang].format(accMunicipalities,(Math.round(gdpAcc*10000)/100)));
+  svg.append("text")
+    .attr("x",450).attr("y",110)
+    .attr("class","side-label")
+    .attr("id","legend1")
+    .text(labels['legend1'][lang].format(Math.round(accPct*10000)/100));
 }
 
 d3.select(self.frameElement).style("height", height + "px");
