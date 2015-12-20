@@ -15,6 +15,7 @@
 
   .side-label {font-size: x-small; }
 text {font-family:Helvetica; font-size:small;}
+#control-prompt {font-size:x-small;}
 #title-container {font-family: Helvetica; max-width: 760px;}
 #text-marker { font-size:x-small; }
 #count-marker { font-size:x-small; }
@@ -65,7 +66,9 @@ var labels = {
   'legend0':{'es':"En {0} municipios se concentra {1}% de la",
              'en':"In {0} municipalities concentrates {1}% of"},
   'legend1':{'es':"producción, y el {0}% de la población en México.",
-             'en':"the production, and {0}% of the population in Mexico."}
+             'en':"the production, and {0}% of the population in Mexico."},
+  'control-prompt':{'es':'Haz click aquí para cambiar el mapa.',
+                    'en':'Click here to visualize different levels of population and production'}
 };
 
 var palette = ["#75dddd", //rgba(117, 221, 221, 100)
@@ -111,8 +114,9 @@ var total_gdp = 0,
     marked = {};
 
 var init_count = parseInt(parse('cnt') || 20),
-    lang = parse('lang') || 'es';
-    accum = 0;
+    lang = parse('lang') || 'es',
+    accum = 0,
+    prompt_hidden = false;
 
 d3.select("#main-title").text(labels['title'][lang]);
 
@@ -133,6 +137,10 @@ queue()
 function doChoropleth(count) {
   var accPct = 0,
       accMunicipalities = 0;
+  if(!prompt_hidden) {
+    prompt_hidden = true;
+    svg.selectAll("#control-prompt").transition().duration(2000).style("fill","white");
+  }
   svg.selectAll(".municipalities")
     .transition()
     .duration(2000)
@@ -326,6 +334,16 @@ function ready(error, mx) {
     .attr("class","side-label")
     .attr("id","legend1")
     .text(labels['legend1'][lang].format(Math.round(accPct*10000)/100));
+
+  svg.append("path").attr("d",d3.svg.symbol().type("triangle-down"))
+    .attr("transform","translate("+(width/2)+","+(pop_r_height-7)+")")
+    .attr("id","control-prompt");
+  svg.append("path").attr("d",d3.svg.symbol().type("triangle-down"))
+    .attr("transform","translate("+(width/2)+","+(gdp_r_height-7)+")")
+    .attr("id","control-prompt");
+  svg.append("text").attr("x",width/2+3).attr("y",pop_r_height-15)
+    .attr("id","control-prompt")
+    .text(labels['control-prompt'][lang]);
 }
 
 d3.select(self.frameElement).style("height", height + "px");
